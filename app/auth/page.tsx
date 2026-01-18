@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { validateEmail, validatePassword } from "@/lib/validation/authSchemas";
+import { Eye, EyeOff } from "lucide-react";
 
 type Mode = "login" | "register";
 
@@ -12,6 +13,8 @@ export default function AuthPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const [showPassword, setShowPassword] = useState(false);
 
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -49,7 +52,7 @@ export default function AuthPage() {
     if (!canSubmit) return;
 
     // Şimdilik sadece UI + validation
-    // API'yi bir sonraki committe bağlayacağız
+    // API'yi bir sonraki committe bağlayacam
     alert(mode === "login" ? "Login submit OK" : "Register submit OK");
   }
 
@@ -83,12 +86,12 @@ export default function AuthPage() {
             )}
 
             <div className="space-y-1">
-              <label className="text-sm font-medium">Email</label>
+              <label className="text-sm font-medium">E-Posta</label>
               <input
                 className="w-full rounded-lg border px-3 py-2 outline-none focus:border-black"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="ornek@mail.com"
+                placeholder=""
                 type="email"
               />
               {emailError && <p className="text-sm text-red-600">{emailError}</p>}
@@ -96,13 +99,26 @@ export default function AuthPage() {
 
             <div className="space-y-1">
               <label className="text-sm font-medium">Şifre</label>
-              <input
-                className="w-full rounded-lg border px-3 py-2 outline-none focus:border-black"
+
+              <div className="relative">
+                <input
+                className="w-full rounded-lg border px-3 py-2 pr-12 outline-none focus:border-black"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="6-20 karakter, harf + rakam"
-                type="password"
-              />
+                placeholder=""
+                type={showPassword ? "text" : "password"}
+               />
+
+              <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-gray-600 hover:text-black"
+              aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+             </div>
+
               {passwordError && (
                 <p className="text-sm text-red-600">{passwordError}</p>
               )}
@@ -113,6 +129,7 @@ export default function AuthPage() {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 accent-gray-700"
               />
               Beni hatırla
             </label>
