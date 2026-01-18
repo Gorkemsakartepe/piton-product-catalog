@@ -9,7 +9,6 @@ type Mode = "login" | "register";
 export default function AuthPage() {
   const [mode, setMode] = useState<Mode>("login");
 
-  // form values
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,7 +17,6 @@ export default function AuthPage() {
 
   const [rememberMe, setRememberMe] = useState(false);
 
-  // submit sonrası hataları göstermek için
   const [submitted, setSubmitted] = useState(false);
 
   const nameError = useMemo(() => {
@@ -51,8 +49,6 @@ export default function AuthPage() {
 
     if (!canSubmit) return;
 
-    // Şimdilik sadece UI + validation
-    // API'yi bir sonraki committe bağlayacam
     alert(mode === "login" ? "Login submit OK" : "Register submit OK");
   }
 
