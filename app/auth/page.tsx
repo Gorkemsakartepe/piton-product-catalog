@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
+
 import {
   validateEmail,
   validateName,
@@ -10,6 +11,10 @@ import {
   validatePasswordConfirm,
   validatePhone,
 } from "@/lib/validation/authSchemas";
+
+import { useAppDispatch } from "@/store/hooks";
+import { setAuth } from "@/features/auth/authSlice";
+import { loginApi, registerApi } from "@/features/auth/authApi";
 
 type Mode = "login" | "register";
 
@@ -39,6 +44,7 @@ function extractPhoneDigits(input: string) {
 
 export default function AuthPage() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
 
   const [mode, setMode] = useState<Mode>("login");
 
@@ -57,6 +63,13 @@ export default function AuthPage() {
   // Password visibility
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+
+  // Remember Me (login only)
+  const [rememberMe, setRememberMe] = useState(false);
+
+  // API state
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   // Validation display
   const [submitted, setSubmitted] = useState(false);
@@ -105,15 +118,50 @@ export default function AuthPage() {
     return okFirst && okLast && okPhone && okEmail && okPassword && okConfirm;
   }, [mode, firstName, lastName, phoneDigits, email, password, passwordConfirm]);
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitted(true);
+    setApiError(null);
 
     if (!canSubmit) return;
 
-    // Requirement: After successful register, redirect to main page.
-    // Note: API integration will be added separately.
-    router.push("/");
+    try {
+      setLoading(true);
+
+      if (mode === "login") {
+        const res = await loginApi({ email, password });
+
+        dispatch(setAuth({ token: res.token, rememberMe }));
+
+        if (rememberMe) {
+          localStorage.setItem("token", res.token);
+        } else {
+          localStorage.removeItem("token");
+        }
+
+        router.push("/");
+        return;
+      }
+
+      // register
+      const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+      const res = await registerApi({
+        name: fullName,
+        email,
+        password,
+      });
+
+      // Requirement: user should see login screen on next app open
+      // -> Do not persist token after register
+      dispatch(setAuth({ token: res.token, rememberMe: false }));
+      localStorage.removeItem("token");
+
+      router.push("/");
+    } catch (err) {
+      setApiError(err instanceof Error ? err.message : "Bir hata oluştu");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -131,6 +179,7 @@ export default function AuthPage() {
                 onClick={() => {
                   setMode("login");
                   setSubmitted(false);
+                  setApiError(null);
                 }}
                 className={`rounded-md px-3 py-1 ${
                   mode === "login" ? "bg-black text-white" : "text-gray-700"
@@ -143,6 +192,7 @@ export default function AuthPage() {
                 onClick={() => {
                   setMode("register");
                   setSubmitted(false);
+                  setApiError(null);
                 }}
                 className={`rounded-md px-3 py-1 ${
                   mode === "register" ? "bg-black text-white" : "text-gray-700"
@@ -160,6 +210,12 @@ export default function AuthPage() {
           </p>
 
           <form className="mt-6 space-y-4" onSubmit={onSubmit}>
+            {apiError && (
+              <p className="rounded-lg border border-red-200 bg-red-50 p-2 text-sm text-red-700">
+                {apiError}
+              </p>
+            )}
+
             {mode === "register" && (
               <>
                 <div className="space-y-1">
@@ -193,7 +249,9 @@ export default function AuthPage() {
                   <input
                     className="w-full rounded-lg border px-3 py-2 outline-none focus:border-black"
                     value={formatTRPhoneFromDigits(phoneDigits)}
-                    onChange={(e) => setPhoneDigits(extractPhoneDigits(e.target.value))}
+                    onChange={(e) =>
+                      setPhoneDigits(extractPhoneDigits(e.target.value))
+                    }
                     placeholder=""
                     type="tel"
                     inputMode="numeric"
@@ -238,7 +296,9 @@ export default function AuthPage() {
                 </button>
               </div>
 
-              {passwordError && <p className="text-sm text-red-600">{passwordError}</p>}
+              {passwordError && (
+                <p className="text-sm text-red-600">{passwordError}</p>
+              )}
             </div>
 
             {mode === "register" && (
@@ -273,11 +333,24 @@ export default function AuthPage() {
               </div>
             )}
 
+            {mode === "login" && (
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="h-4 w-4 accent-black"
+                />
+                Beni hatırla
+              </label>
+            )}
+
             <button
               type="submit"
-              className="w-full rounded-lg bg-black px-4 py-2 text-white"
+              className="w-full rounded-lg bg-black px-4 py-2 text-white disabled:opacity-50"
+              disabled={loading}
             >
-              {mode === "login" ? "Giriş Yap" : "Kayıt Ol"}
+              {loading ? "İşleniyor..." : mode === "login" ? "Giriş Yap" : "Kayıt Ol"}
             </button>
           </form>
         </div>
