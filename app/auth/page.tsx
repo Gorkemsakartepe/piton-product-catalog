@@ -151,7 +151,8 @@ export default function AuthPage() {
       const token = res.data.token;
 
       dispatch(setAuth({ token, rememberMe: false }));
-
+      setToken(token, false);
+      
       router.push("/products");
     } catch (err) {
       setApiError(err instanceof Error ? err.message : "Bir hata oluştu");
