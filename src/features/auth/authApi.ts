@@ -1,19 +1,32 @@
 import { apiFetchEnvelope } from "@/lib/api/client";
 
-export type AuthEnvelope = {
+export type ApiEnvelope<T> = {
   statusCode: number;
   success: boolean;
   message?: string;
-  data: string; // token string
+  data: T;
+};
+
+export type AuthUser = {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  created_at: string;
+  role_id: number;
+  branch_id: number | null;
+};
+
+export type AuthData = {
+  user: AuthUser;
+  token: string;
 };
 
 export async function loginApi(values: { email: string; password: string }) {
-  // POST /auth/login
-  const res = await apiFetchEnvelope<string>("/auth/login", {
+  return apiFetchEnvelope<AuthData>("/api/v1/auth/login", {
     method: "POST",
     body: JSON.stringify(values),
   });
-  return res; // { data: token }
 }
 
 export async function registerApi(values: {
@@ -21,10 +34,9 @@ export async function registerApi(values: {
   email: string;
   password: string;
 }) {
-  // POST /auth/register
-  const res = await apiFetchEnvelope<string>("/auth/register", {
+  return apiFetchEnvelope<AuthData>("/api/v1/auth/register", {
     method: "POST",
     body: JSON.stringify(values),
   });
-  return res; // { data: token }
 }
+

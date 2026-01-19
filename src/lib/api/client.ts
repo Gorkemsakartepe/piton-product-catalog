@@ -1,4 +1,4 @@
-const BASE_URL = "https://assignment-api.piton.com.tr";
+const BASE_URL = "https://store-api-dev.piton.com.tr";
 
 type ApiEnvelope<T> = {
   statusCode: number;

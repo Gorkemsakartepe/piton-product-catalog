@@ -130,7 +130,7 @@ export default function AuthPage() {
 
       if (mode === "login") {
         const res = await loginApi({ email, password });
-        const token = res.data;
+        const token = res.data.token;
 
         dispatch(setAuth({ token, rememberMe }));
 
@@ -152,7 +152,7 @@ export default function AuthPage() {
         password,
       });
 
-      const token = res.data;
+      const token = res.data.token;
 
       // Requirement: next app open should show login screen
       // -> do NOT persist token after register
