@@ -15,6 +15,7 @@ import {
 import { useAppDispatch } from "@/store/hooks";
 import { setAuth } from "@/features/auth/authSlice";
 import { loginApi, registerApi } from "@/features/auth/authApi";
+import { setToken } from "@/lib/auth/token";
 
 type Mode = "login" | "register";
 
@@ -133,14 +134,9 @@ export default function AuthPage() {
         const token = res.data.token;
 
         dispatch(setAuth({ token, rememberMe }));
+        setToken(token, rememberMe);
 
-        if (rememberMe) {
-          localStorage.setItem("token", token);
-        } else {
-          localStorage.removeItem("token");
-        }
-
-        router.push("/");
+        router.push("/products");
         return;
       }
 
@@ -154,12 +150,12 @@ export default function AuthPage() {
 
       const token = res.data.token;
 
-      // Requirement: next app open should show login screen
-      // -> do NOT persist token after register
+      // Requirement: Register sonrası ana sayfaya (ürünler) yönlendir.
+      // Ayrıca "uygulamaya tekrar girişte login görünsün" şartı için,
+      // register sonrası token'ı kalıcı saklamıyoruz (session/local'a yazmıyoruz).
       dispatch(setAuth({ token, rememberMe: false }));
-      localStorage.removeItem("token");
 
-      router.push("/");
+      router.push("/products");
     } catch (err) {
       setApiError(err instanceof Error ? err.message : "Bir hata oluştu");
     } finally {
@@ -252,9 +248,7 @@ export default function AuthPage() {
                   <input
                     className="w-full rounded-lg border px-3 py-2 outline-none focus:border-black"
                     value={formatTRPhoneFromDigits(phoneDigits)}
-                    onChange={(e) =>
-                      setPhoneDigits(extractPhoneDigits(e.target.value))
-                    }
+                    onChange={(e) => setPhoneDigits(extractPhoneDigits(e.target.value))}
                     placeholder=""
                     type="tel"
                     inputMode="numeric"
@@ -299,9 +293,7 @@ export default function AuthPage() {
                 </button>
               </div>
 
-              {passwordError && (
-                <p className="text-sm text-red-600">{passwordError}</p>
-              )}
+              {passwordError && <p className="text-sm text-red-600">{passwordError}</p>}
             </div>
 
             {mode === "register" && (
@@ -321,9 +313,7 @@ export default function AuthPage() {
                     onClick={() => setShowPasswordConfirm((v) => !v)}
                     className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-gray-600 hover:text-black"
                     aria-label={
-                      showPasswordConfirm
-                        ? "Şifre tekrarını gizle"
-                        : "Şifre tekrarını göster"
+                      showPasswordConfirm ? "Şifre tekrarını gizle" : "Şifre tekrarını göster"
                     }
                   >
                     {showPasswordConfirm ? <EyeOff size={18} /> : <Eye size={18} />}

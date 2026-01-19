@@ -1,5 +1,15 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { getToken } from "@/lib/auth/token";
 
 export default function HomePage() {
-  redirect("/products");
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace(getToken() ? "/products" : "/auth");
+  }, [router]);
+
+  return null;
 }

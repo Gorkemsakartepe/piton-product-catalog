@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getToken } from "@/lib/auth/token";
 
 type Product = {
   id: string;
@@ -10,42 +12,12 @@ type Product = {
   price?: number;
 };
 
-/**
- * Kurumsal not:
- * - /api/v1/books endpoint'i zaman zaman 500 dönebiliyor.
- * - UI akışının bozulmaması için API başarısız olursa mock data ile devam edilir.
- */
 const MOCK_PRODUCTS: Product[] = [
-  {
-    id: "1",
-    name: "Kablosuz Kulaklık",
-    description: "Gürültü engelleme, yüksek kalite ses ve uzun pil ömrü.",
-    price: 2499,
-  },
-  {
-    id: "2",
-    name: "Akıllı Saat",
-    description: "Sağlık takibi, bildirimler ve spor modları.",
-    price: 3199,
-  },
-  {
-    id: "3",
-    name: "Mekanik Klavye",
-    description: "Konforlu yazım, dayanıklı switch yapısı ve kompakt tasarım.",
-    price: 1899,
-  },
-  {
-    id: "4",
-    name: "Oyuncu Mouse",
-    description: "Yüksek hassasiyet sensör, ergonomik gövde.",
-    price: 999,
-  },
-  {
-    id: "5",
-    name: "4K Monitör",
-    description: "Keskin görüntü, geniş ekran çalışma alanı.",
-    price: 7999,
-  },
+  { id: "1", name: "Kablosuz Kulaklık", description: "Gürültü engelleme, yüksek kalite ses ve uzun pil ömrü.", price: 2499 },
+  { id: "2", name: "Akıllı Saat", description: "Sağlık takibi, bildirimler ve spor modları.", price: 3199 },
+  { id: "3", name: "Mekanik Klavye", description: "Konforlu yazım, dayanıklı switch yapısı ve kompakt tasarım.", price: 1899 },
+  { id: "4", name: "Oyuncu Mouse", description: "Yüksek hassasiyet sensör, ergonomik gövde.", price: 999 },
+  { id: "5", name: "4K Monitör", description: "Keskin görüntü, geniş ekran çalışma alanı.", price: 7999 },
 ];
 
 function formatTRY(price?: number) {
@@ -87,10 +59,7 @@ function cleanHeroSvgDataUri(icon: string, theme: { a: string; b: string; c: str
     <circle cx="650" cy="150" r="130" fill="${theme.c}" opacity="0.55"/>
     <circle cx="160" cy="420" r="180" fill="${theme.c}" opacity="0.40"/>
     <circle cx="320" cy="180" r="90" fill="${theme.c}" opacity="0.28"/>
-
     <text x="72" y="140" font-family="Arial, Helvetica, sans-serif" font-size="64">${icon}</text>
-
-    <!-- küçük brand line (istersen kaldırabiliriz) -->
     <text x="72" y="450" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#6B7280">
       Piton Product Catalog
     </text>
@@ -100,6 +69,8 @@ function cleanHeroSvgDataUri(icon: string, theme: { a: string; b: string; c: str
 }
 
 export default function ProductsPage() {
+  const router = useRouter();
+
   const [items, setItems] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [userFacingError, setUserFacingError] = useState<string | null>(null);
@@ -121,9 +92,9 @@ export default function ProductsPage() {
         setLoading(true);
         setUserFacingError(null);
 
-        const token = localStorage.getItem("token");
+        const token = getToken();
         if (!token) {
-          setItems(MOCK_PRODUCTS);
+          router.replace("/auth");
           return;
         }
 
@@ -164,7 +135,7 @@ export default function ProductsPage() {
     }
 
     run();
-  }, []);
+  }, [router]);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
