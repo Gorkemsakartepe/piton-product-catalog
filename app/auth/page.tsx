@@ -150,9 +150,6 @@ export default function AuthPage() {
 
       const token = res.data.token;
 
-      // Requirement: Register sonrası ana sayfaya (ürünler) yönlendir.
-      // Ayrıca "uygulamaya tekrar girişte login görünsün" şartı için,
-      // register sonrası token'ı kalıcı saklamıyoruz (session/local'a yazmıyoruz).
       dispatch(setAuth({ token, rememberMe: false }));
 
       router.push("/products");
