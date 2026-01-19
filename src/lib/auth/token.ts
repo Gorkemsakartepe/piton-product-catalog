@@ -15,7 +15,7 @@ export function setToken(token: string, remember: boolean) {
 }
 
 export function getToken(): string | null {
-  // Önce local (remember), yoksa session (remember değil)
+  
   return localStorage.getItem(LS_KEY) ?? sessionStorage.getItem(SS_KEY);
 }
 
