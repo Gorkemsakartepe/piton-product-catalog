@@ -1,9 +1,16 @@
 const BASE_URL = "https://assignment-api.piton.com.tr";
 
-export async function apiFetch<T>(
+type ApiEnvelope<T> = {
+  statusCode: number;
+  success: boolean;
+  message?: string;
+  data: T;
+};
+
+export async function apiFetchEnvelope<T>(
   path: string,
   options?: RequestInit
-): Promise<T> {
+): Promise<ApiEnvelope<T>> {
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
     headers: {
@@ -12,16 +19,25 @@ export async function apiFetch<T>(
     },
   });
 
-  if (!res.ok) {
-    let details = "";
-    try {
-      details = await res.text();
-    } catch {
-      // ignore
-    }
+  const text = await res.text();
+  let json: any = null;
 
-    throw new Error(`Request failed (${res.status}) ${details ? "- " + details : ""}`);
+  try {
+    json = text ? JSON.parse(text) : null;
+  } catch {
   }
 
-  return (await res.json()) as T;
+  if (!res.ok) {
+    const msg =
+      json?.message ||
+      json?.error?.message ||
+      `Request failed (${res.status})`;
+    throw new Error(msg);
+  }
+
+  if (json && typeof json === "object" && json.success === false) {
+    throw new Error(json.message || "İşlem başarısız");
+  }
+
+  return json as ApiEnvelope<T>;
 }

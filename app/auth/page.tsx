@@ -22,10 +22,10 @@ function formatTRPhoneFromDigits(digits: string) {
   const d = digits.replace(/\D/g, "").slice(0, 10);
   if (!d) return "";
 
-  const p1 = d.slice(0, 3); // 505
-  const p2 = d.slice(3, 6); // 888
-  const p3 = d.slice(6, 8); // 88
-  const p4 = d.slice(8, 10); // 88
+  const p1 = d.slice(0, 3);
+  const p2 = d.slice(3, 6);
+  const p3 = d.slice(6, 8);
+  const p4 = d.slice(8, 10);
 
   let out = "+90";
   out += `(${p1}`;
@@ -130,11 +130,12 @@ export default function AuthPage() {
 
       if (mode === "login") {
         const res = await loginApi({ email, password });
+        const token = res.data;
 
-        dispatch(setAuth({ token: res.token, rememberMe }));
+        dispatch(setAuth({ token, rememberMe }));
 
         if (rememberMe) {
-          localStorage.setItem("token", res.token);
+          localStorage.setItem("token", token);
         } else {
           localStorage.removeItem("token");
         }
@@ -151,9 +152,11 @@ export default function AuthPage() {
         password,
       });
 
-      // Requirement: user should see login screen on next app open
-      // -> Do not persist token after register
-      dispatch(setAuth({ token: res.token, rememberMe: false }));
+      const token = res.data;
+
+      // Requirement: next app open should show login screen
+      // -> do NOT persist token after register
+      dispatch(setAuth({ token, rememberMe: false }));
       localStorage.removeItem("token");
 
       router.push("/");

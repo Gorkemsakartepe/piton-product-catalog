@@ -1,15 +1,19 @@
-import { apiFetch } from "@/lib/api/client";
+import { apiFetchEnvelope } from "@/lib/api/client";
 
-export type AuthResponse = { token: string };
+export type AuthEnvelope = {
+  statusCode: number;
+  success: boolean;
+  message?: string;
+  data: string; // token string
+};
 
-export async function loginApi(values: {
-  email: string;
-  password: string;
-}) {
-  return apiFetch<AuthResponse>("/api/v1/user/login", {
+export async function loginApi(values: { email: string; password: string }) {
+  // POST /auth/login
+  const res = await apiFetchEnvelope<string>("/auth/login", {
     method: "POST",
     body: JSON.stringify(values),
   });
+  return res; // { data: token }
 }
 
 export async function registerApi(values: {
@@ -17,8 +21,10 @@ export async function registerApi(values: {
   email: string;
   password: string;
 }) {
-  return apiFetch<AuthResponse>("/api/v1/user/register", {
+  // POST /auth/register
+  const res = await apiFetchEnvelope<string>("/auth/register", {
     method: "POST",
     body: JSON.stringify(values),
   });
+  return res; // { data: token }
 }
