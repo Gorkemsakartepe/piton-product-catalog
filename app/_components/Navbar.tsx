@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { clearAuth, setAuthToken } from "@/features/auth/authSlice";
 import { clearToken, getToken } from "@/lib/auth/token";
@@ -14,25 +14,37 @@ export default function Navbar() {
   const dispatch = useAppDispatch();
   const reduxToken = useAppSelector((s) => s.auth.token);
 
+  const [mounted, setMounted] = useState(false);
+  const [authed, setAuthed] = useState(false);
+
+  if (pathname?.startsWith("/auth")) return null;
+
   useEffect(() => {
+    setMounted(true);
+
     if (!reduxToken) {
       const t = getToken();
       if (t) dispatch(setAuthToken(t));
     }
   }, [reduxToken, dispatch]);
 
-  const authed = useMemo(() => {
-    return !!(reduxToken || getToken());
-  }, [reduxToken]);
+  useEffect(() => {
+    if (!mounted) return;
+
+    const storageToken = getToken();
+    setAuthed(!!(reduxToken || storageToken));
+  }, [mounted, reduxToken]);
 
   function onLogout() {
     clearToken();
     dispatch(clearAuth());
+    setAuthed(false);
+
     router.replace("/auth");
     router.refresh();
   }
 
-  if (pathname?.startsWith("/auth")) return null;
+  const showAuthAction = mounted;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur">
@@ -60,21 +72,26 @@ export default function Navbar() {
             Favoriler
           </Link>
 
-          {authed ? (
-            <button
-              type="button"
-              onClick={onLogout}
-              className="rounded-xl border px-3 py-2 text-sm shadow-sm hover:bg-gray-50"
-            >
-              Çıkış
-            </button>
+          {showAuthAction ? (
+            authed ? (
+              <button
+                type="button"
+                onClick={onLogout}
+                className="rounded-xl border px-3 py-2 text-sm shadow-sm hover:bg-gray-50"
+              >
+                Çıkış
+              </button>
+            ) : (
+              <Link
+                href="/auth"
+                className="rounded-xl border px-3 py-2 text-sm shadow-sm hover:bg-gray-50"
+              >
+                Giriş
+              </Link>
+            )
           ) : (
-            <Link
-              href="/auth"
-              className="rounded-xl border px-3 py-2 text-sm shadow-sm hover:bg-gray-50"
-            >
-              Giriş
-            </Link>
+
+            <span className="h-9 w-20 rounded-xl border bg-white/60" />
           )}
         </nav>
       </div>

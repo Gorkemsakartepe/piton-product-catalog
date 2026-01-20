@@ -1,32 +1,47 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { getToken } from "@/lib/auth/token";
 import { setAuthToken } from "@/features/auth/authSlice";
+import { getToken } from "@/lib/auth/token";
 
-export function useAuthGuard() {
+type Options = {
+  /** auth sayfasına atarken return url eklesin mi */
+  withNext?: boolean;
+};
+
+export function useAuthGuard(options: Options = { withNext: true }) {
   const router = useRouter();
+  const pathname = usePathname();
+
   const dispatch = useAppDispatch();
   const reduxToken = useAppSelector((s) => s.auth.token);
-  const [checked, setChecked] = useState(false);
 
-  const token = useMemo(() => reduxToken || getToken(), [reduxToken]);
+  const [mounted, setMounted] = useState(false);
+
+  // Mount sonrası token'ı redux'a hydrate et
+  useEffect(() => {
+    setMounted(true);
+
+    if (!reduxToken) {
+      const t = getToken();
+      if (t) dispatch(setAuthToken(t));
+    }
+  }, [reduxToken, dispatch]);
+
+  const authed = useMemo(() => {
+    if (!mounted) return null;
+    return !!(reduxToken || getToken());
+  }, [mounted, reduxToken]);
 
   useEffect(() => {
-    const t = getToken();
-    if (!reduxToken && t) dispatch(setAuthToken(t));
+    if (!mounted) return;
+    if (authed) return;
 
-    const effective = reduxToken || t;
-    if (!effective) {
-      router.replace("/auth");
-      router.refresh();
-      return;
-    }
+    const next = options.withNext && pathname ? `?next=${encodeURIComponent(pathname)}` : "";
+    router.replace(`/auth${next}`);
+  }, [mounted, authed, router, pathname, options.withNext]);
 
-    setChecked(true);
-  }, [reduxToken, dispatch, router]);
-
-  return { token, checked };
+  return { authed, mounted };
 }

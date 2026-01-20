@@ -70,6 +70,13 @@ function extractTokenFromApiResponse(res: any): string | null {
   );
 }
 
+function getNextUrl(): string | null {
+  if (typeof window === "undefined") return null;
+  const params = new URLSearchParams(window.location.search);
+  const next = params.get("next");
+  return next && next.startsWith("/") ? next : null;
+}
+
 export default function AuthPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -149,19 +156,18 @@ export default function AuthPage() {
     try {
       setLoading(true);
 
+      const next = getNextUrl();
+
       if (mode === "login") {
         const res = await loginApi({ email, password });
         const token = extractTokenFromApiResponse(res);
 
-        if (!token) {
-          throw new Error("Giriş başarılı ancak token alınamadı.");
-        }
+        if (!token) throw new Error("Giriş başarılı ancak token alınamadı.");
 
         setToken(token, rememberMe);
         dispatch(setAuthToken(token));
 
-        router.replace("/products");
-        router.refresh();
+        router.replace(next || "/products");
         return;
       }
 
@@ -175,13 +181,8 @@ export default function AuthPage() {
       const token = extractTokenFromApiResponse(res);
 
       clearToken();
-      if (token) {
-        setToken(token, false);
-        dispatch(setAuthToken(token));
-      }
 
-      router.replace("/products");
-      router.refresh();
+      router.replace(next || "/products");
     } catch (err) {
       setApiError(err instanceof Error ? err.message : "Bir hata oluştu");
     } finally {

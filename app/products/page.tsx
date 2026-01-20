@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-
+import { useAuthGuard } from "@/lib/auth/useAuthGuard";
 
 type Product = {
   id: string;
@@ -55,7 +55,7 @@ const MOCK_PRODUCTS: Product[] = [
 const PRODUCT_IMAGES: Record<string, string> = {
   "Kablosuz Kulaklık": "/images/headphones.png",
   "Akıllı Saat": "/images/watch.png",
-  "Mekanik Klavye": "/images/keyboard.png",
+  "Mekanik Klavye": "/images/keyboard.webp",
   "Oyuncu Mouse": "/images/mouse.png",
   "4K Monitör": "/images/monitor.webp",
 };
@@ -94,6 +94,7 @@ function attachMockImages(items: Product[]) {
 
 export default function ProductsPage() {
   const router = useRouter();
+  const { authed, mounted } = useAuthGuard();
 
   const [items, setItems] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,12 +106,9 @@ export default function ProductsPage() {
     "Öne çıkan"
   );
 
-  useEffect(() => {
-    const token = getTokenFromStorage();
-    if (!token) {
-      router.replace("/auth");
-    }
-  }, [router]);
+  if (!mounted || authed === null) return null;
+
+  if (!authed) return null;
 
   useEffect(() => {
     async function run() {
@@ -120,7 +118,8 @@ export default function ProductsPage() {
 
         const token = getTokenFromStorage();
         if (!token) {
-          setItems([]);
+
+          router.replace("/auth");
           return;
         }
 
@@ -167,8 +166,7 @@ export default function ProductsPage() {
     items.forEach((p) => {
       if (p.category) set.add(p.category);
     });
-    const fromMock = ["Elektronik", "Giyilebilir", "Aksesuar"];
-    fromMock.forEach((c) => set.add(c));
+    ["Elektronik", "Giyilebilir", "Aksesuar"].forEach((c) => set.add(c));
     return ["Tümü", ...Array.from(set)];
   }, [items]);
 
@@ -178,7 +176,9 @@ export default function ProductsPage() {
     let list = items.slice();
 
     if (category !== "Tümü") {
-      list = list.filter((p) => (p.category ?? "").toLowerCase() === category.toLowerCase());
+      list = list.filter(
+        (p) => (p.category ?? "").toLowerCase() === category.toLowerCase()
+      );
     }
 
     if (q) {
@@ -189,7 +189,10 @@ export default function ProductsPage() {
     }
 
     if (sort === "Fiyat (Artan)") {
-      list.sort((a, b) => (a.price ?? Number.MAX_SAFE_INTEGER) - (b.price ?? Number.MAX_SAFE_INTEGER));
+      list.sort(
+        (a, b) =>
+          (a.price ?? Number.MAX_SAFE_INTEGER) - (b.price ?? Number.MAX_SAFE_INTEGER)
+      );
     } else if (sort === "Fiyat (Azalan)") {
       list.sort((a, b) => (b.price ?? -1) - (a.price ?? -1));
     }
