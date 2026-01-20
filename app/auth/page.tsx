@@ -13,9 +13,9 @@ import {
 } from "@/lib/validation/authSchemas";
 
 import { useAppDispatch } from "@/store/hooks";
-import { setAuth } from "@/features/auth/authSlice";
+import { setAuthToken } from "@/features/auth/authSlice";
 import { loginApi, registerApi } from "@/features/auth/authApi";
-import { setToken } from "@/lib/auth/token";
+import { setToken, clearToken } from "@/lib/auth/token";
 
 type Mode = "login" | "register";
 
@@ -61,36 +61,38 @@ function Field({
   );
 }
 
+function extractTokenFromApiResponse(res: any): string | null {
+  return (
+    res?.data?.token ||
+    res?.data?.data?.token ||
+    res?.data?.data?.data?.token ||
+    null
+  );
+}
+
 export default function AuthPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
   const [mode, setMode] = useState<Mode>("login");
 
-  // Register fields
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phoneDigits, setPhoneDigits] = useState("");
 
-  // Shared fields
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // Register confirm
   const [passwordConfirm, setPasswordConfirm] = useState("");
 
-  // Password visibility
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
 
-  // Remember Me (login only)
   const [rememberMe, setRememberMe] = useState(false);
 
-  // API state
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  // Validation display
   const [submitted, setSubmitted] = useState(false);
 
   const firstNameError = useMemo(() => {
@@ -149,12 +151,17 @@ export default function AuthPage() {
 
       if (mode === "login") {
         const res = await loginApi({ email, password });
-        const token = res.data.token;
+        const token = extractTokenFromApiResponse(res);
 
-        dispatch(setAuth({ token, rememberMe }));
+        if (!token) {
+          throw new Error("Giriş başarılı ancak token alınamadı.");
+        }
+
         setToken(token, rememberMe);
+        dispatch(setAuthToken(token));
 
-        router.push("/products");
+        router.replace("/products");
+        router.refresh();
         return;
       }
 
@@ -165,12 +172,16 @@ export default function AuthPage() {
         password,
       });
 
-      const token = res.data.token;
+      const token = extractTokenFromApiResponse(res);
 
-      dispatch(setAuth({ token, rememberMe: false }));
-      setToken(token, false);
+      clearToken();
+      if (token) {
+        setToken(token, false);
+        dispatch(setAuthToken(token));
+      }
 
-      router.push("/products");
+      router.replace("/products");
+      router.refresh();
     } catch (err) {
       setApiError(err instanceof Error ? err.message : "Bir hata oluştu");
     } finally {
@@ -180,10 +191,8 @@ export default function AuthPage() {
 
   return (
     <main className="min-h-[calc(100vh-80px)]">
-      {/* Dikey ortalama + padding */}
       <div className="mx-auto flex min-h-[calc(100vh-80px)] max-w-6xl items-center px-4 py-10">
         <div className="grid w-full items-stretch gap-8 lg:grid-cols-2">
-          {/* Left panel */}
           <section className="hidden lg:block">
             <div className="h-full rounded-3xl border bg-white p-10 shadow-sm">
               <div className="flex items-center gap-3">
@@ -196,17 +205,16 @@ export default function AuthPage() {
                 </p>
               </div>
 
-              {/* hafif çizgi */}
               <div className="mt-6 h-px w-full bg-gradient-to-r from-gray-200 via-gray-100 to-transparent" />
 
               <h1 className="mt-8 text-4xl font-semibold tracking-tight">
-                Ürün kataloğunu{" "}
-                <span className="text-gray-500">modern</span> şekilde yönet.
+                Ürün kataloğunu <span className="text-gray-500">modern</span>{" "}
+                şekilde yönet.
               </h1>
 
               <p className="mt-4 text-base text-gray-600">
-                Giriş yaparak ürünleri görüntüleyebilir, favorilerine ekleyebilir ve
-                ürün detaylarını inceleyebilirsin.
+                Giriş yaparak ürünleri görüntüleyebilir, favorilerine
+                ekleyebilir ve ürün detaylarını inceleyebilirsin.
               </p>
 
               <div className="mt-8 grid gap-4">
@@ -234,7 +242,6 @@ export default function AuthPage() {
             </div>
           </section>
 
-          {/* Right Form */}
           <section className="flex items-center">
             <div className="w-full rounded-3xl border bg-white p-6 shadow-sm sm:p-8">
               <div className="flex items-center justify-between gap-4">
@@ -249,7 +256,6 @@ export default function AuthPage() {
                   </p>
                 </div>
 
-                {/* Animated Switch */}
                 <div className="relative flex w-[190px] items-center rounded-full border bg-gray-50 p-1">
                   <div
                     className={[

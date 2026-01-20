@@ -1,30 +1,28 @@
-const LS_KEY = "token";
-const SS_KEY = "token_session";
-const REMEMBER_KEY = "remember_me";
+const TOKEN_KEY = "token";
 
-export function setToken(token: string, remember: boolean) {
+export function getToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
+}
+
+export function setToken(token: string, remember: boolean): void {
+  if (typeof window === "undefined") return;
+
   if (remember) {
-    localStorage.setItem(LS_KEY, token);
-    localStorage.setItem(REMEMBER_KEY, "1");
-    sessionStorage.removeItem(SS_KEY);
+    localStorage.setItem(TOKEN_KEY, token);
+    sessionStorage.removeItem(TOKEN_KEY);
   } else {
-    sessionStorage.setItem(SS_KEY, token);
-    localStorage.removeItem(LS_KEY);
-    localStorage.removeItem(REMEMBER_KEY);
+    sessionStorage.setItem(TOKEN_KEY, token);
+    localStorage.removeItem(TOKEN_KEY);
   }
 }
 
-export function getToken(): string | null {
-  
-  return localStorage.getItem(LS_KEY) ?? sessionStorage.getItem(SS_KEY);
+export function clearToken(): void {
+  if (typeof window === "undefined") return;
+  sessionStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(TOKEN_KEY);
 }
 
-export function clearToken() {
-  localStorage.removeItem(LS_KEY);
-  localStorage.removeItem(REMEMBER_KEY);
-  sessionStorage.removeItem(SS_KEY);
-}
-
-export function isRemembered(): boolean {
-  return localStorage.getItem(REMEMBER_KEY) === "1";
+export function isAuthed(): boolean {
+  return !!getToken();
 }
