@@ -61,13 +61,24 @@ Login sonrası /products sayfasına yönlendirilirsiniz.
 
 Favoriler sayfasında favori listenizi görüntüleyebilir ve favorilerinizden çıkarabilirsiniz.
 
-🖼️ Ekran Görüntüleri
 
-![Auth](docs/screenshots/auth.png)
-![Auth](docs/screenshots/auth-register.png)
-![Products](docs/screenshots/products.png)
-![Detail](docs/screenshots/product-detail.png)
-![Favorites](docs/screenshots/favorites.png)
+## 📸 Ekran Görüntüleri
+
+### Auth
+![Auth](./docs/screenshots/auth.png)
+
+### Register
+![Register](./docs/screenshots/auth-register.png)
+
+### Products
+![Products](./docs/screenshots/products.png)
+
+### Product Detail
+![Product Detail](./docs/screenshots/product-detail.png)
+
+### Favorites
+![Favorites](./docs/screenshots/favorites.png)
+
 
 📌 Notlar
 
