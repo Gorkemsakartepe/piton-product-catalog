@@ -1,0 +1,23 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none"
+  xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Beyaz arka plan -->
+  <rect width="512" height="512" rx="128" fill="white"/>
+
+  <!-- Dış border -->
+  <rect x="28" y="28" width="456" height="456" rx="114"
+    fill="white" stroke="#E5E7EB" stroke-width="16"/>
+
+  <!-- N harfi -->
+  <text x="256" y="290"
+    text-anchor="middle"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="220"
+    font-weight="700"
+    fill="#111827">
+    N
+  </text>
+
+  <!-- Sağ alt siyah nokta (senin logodaki gibi) -->
+  <circle cx="330" cy="350" r="26" fill="#000000"/>
+</svg>

@@ -4,8 +4,8 @@ import Providers from "./_components/Providers";
 import Navbar from "./_components/Navbar";
 
 export const metadata: Metadata = {
-  title: "Product Catalog",
-  description: "Piton Technology - Product Catalog Project",
+  title: "Noventa | Product Catalog",
+  description: "Noventa ürün kataloğu uygulaması",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
