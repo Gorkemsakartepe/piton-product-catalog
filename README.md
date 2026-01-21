@@ -1,4 +1,4 @@
-# Noventa — Product Catalog (Piton Technology Case)
+# Noventa — Product Catalog
 
 Bu proje, Piton Technology **“Frontend Ürün Katalog Projesi”** değerlendirme kapsamında geliştirilmiştir.  
 Uygulama; **kullanıcı kayıt/giriş akışı**, **ürün listeleme**, **ürün detay** ve **favoriler** akışlarını içerir.
