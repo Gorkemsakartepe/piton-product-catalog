@@ -7,7 +7,6 @@ import { setAuthToken } from "@/features/auth/authSlice";
 import { getToken } from "@/lib/auth/token";
 
 type Options = {
-  /** auth sayfasına atarken return url eklesin mi */
   withNext?: boolean;
 };
 
@@ -20,7 +19,6 @@ export function useAuthGuard(options: Options = { withNext: true }) {
 
   const [mounted, setMounted] = useState(false);
 
-  // Mount sonrası token'ı redux'a hydrate et
   useEffect(() => {
     setMounted(true);
 
@@ -39,7 +37,8 @@ export function useAuthGuard(options: Options = { withNext: true }) {
     if (!mounted) return;
     if (authed) return;
 
-    const next = options.withNext && pathname ? `?next=${encodeURIComponent(pathname)}` : "";
+    const next =
+      options.withNext && pathname ? `?next=${encodeURIComponent(pathname)}` : "";
     router.replace(`/auth${next}`);
   }, [mounted, authed, router, pathname, options.withNext]);
 
